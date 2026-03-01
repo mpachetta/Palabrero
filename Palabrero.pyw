@@ -103,14 +103,15 @@ class User:
             return False
 
         resampling = getattr(Image, "Resampling", Image).LANCZOS
-        with Image.open(file_path) as image:
-            resized_img = image.resize((32, 32), resampling)
-            save_dir = "Images_user"
-            os.makedirs(save_dir, exist_ok=True)
-            save_path = os.path.join(save_dir, self.get_name() + ".png")
-            resized_img.save(save_path)
+        save_dir = "Images_user"
+        os.makedirs(save_dir, exist_ok=True)
+        save_path = os.path.join(save_dir, self.get_name() + ".png")
 
-        self.user_img = ImageTk.PhotoImage(file=save_path)
+        with Image.open(file_path) as image:
+            resized_img = image.convert("RGBA").resize((32, 32), resampling)
+            resized_img.save(save_path, format="PNG")
+
+        self.user_img = PhotoImage(file=save_path)
         return True
 
 class MainScreen:
