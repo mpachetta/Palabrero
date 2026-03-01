@@ -94,23 +94,25 @@ class User:
         else:
             self.user_img=PhotoImage(file="usuario.png")
     def change_user_img(self):
-        # Abrir archivo de imagen
-        file_path = fd.askopenfilename()
-        
-        image = Image.open(file_path)
+        file_path = fd.askopenfilename(
+            title="Selecciona una imagen",
+            filetypes=(("Imagen", "*.png *.jpg *.jpeg *.webp *.bmp"), ("Todos", "*.*")),
+        )
 
-        # Cambiar tamaño de la imagen a 32x32
-        resized_img = image.resize((32, 32))
-        
-        save_dir="Images_user"
-        filename=self.get_name()+".png"
-        save_path = os.path.join(save_dir, str(filename))
-        resized_img.save(save_path)
-        # Convertir imagen para usar en tkinter
-        photo = ImageTk.PhotoImage(resized_img)
+        if not file_path:
+            return False
 
-        # Asignar imagen al atributo user_img
-        self.user_img = photo
+        resampling = getattr(Image, "Resampling", Image).LANCZOS
+        save_dir = "Images_user"
+        os.makedirs(save_dir, exist_ok=True)
+        save_path = os.path.join(save_dir, self.get_name() + ".png")
+
+        with Image.open(file_path) as image:
+            resized_img = image.convert("RGBA").resize((32, 32), resampling)
+            resized_img.save(save_path, format="PNG")
+
+        self.user_img = PhotoImage(file=save_path)
+        return True
 
 class MainScreen:
     def __init__(self, root):
@@ -384,7 +386,8 @@ class SecondScreen:
         self.label_stars["bg"] = colors[4]
     
     def new_user_img(self,event):
-        current_user.change_user_img()
+        if not current_user.change_user_img():
+            return
         self.button1.pack_forget()
         self.button2.pack_forget()
         self.button3.pack_forget()
